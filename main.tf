@@ -49,6 +49,7 @@ module "organization" {
   regions                             = var.regions
   organizational_unit_id              = var.organizational_unit_id
   additional_tags                     = var.additional_tags
+  call_as                             = var.call_as
   aqua_tenant_id                      = var.aqua_tenant_id
   aqua_random_id                      = var.aqua_random_id
   aqua_worker_role_arn                = var.aqua_worker_role_arn
