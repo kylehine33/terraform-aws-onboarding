@@ -51,6 +51,7 @@ resource "aws_cloudformation_stack_set_instance" "stack_set_instance" {
   for_each       = toset(concat(var.regions, [var.region]))
   stack_set_name = aws_cloudformation_stack_set.stack_set.name
   region         = each.value
+  call_as        = var.call_as
   deployment_targets {
     organizational_unit_ids = [var.organizational_unit_id]
   }
