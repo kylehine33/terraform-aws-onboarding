@@ -6,6 +6,7 @@ resource "aws_cloudformation_stack_set" "stack_set" {
   description      = "Aqua Agentless StackSet"
   capabilities     = ["CAPABILITY_NAMED_IAM"]
   permission_model = "SERVICE_MANAGED"
+  call_as          = var.call_as
   template_url     = "https://${var.aqua_bucket_name}.s3.amazonaws.com/onboarding_stackset_control_tower.yaml"
   auto_deployment {
     enabled                          = true

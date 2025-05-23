@@ -51,6 +51,12 @@ variable "additional_tags" {
   default     = {}
 }
 
+variable "call_as" {
+  description = "Specifies whether you are acting as an account administrator in the organization's management account or as a delegated administrator in a member account. Valid values: SELF (default), DELEGATED_ADMIN"
+  type        = string
+  default     = "SELF"
+}
+
 variable "show_outputs" {
   description = "Whether to show outputs after deployment"
   type        = bool

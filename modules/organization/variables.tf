@@ -21,6 +21,11 @@ variable "additional_tags" {
   default     = {}
 }
 
+variable "call_as" {
+  description = "Specifies whether you are acting as an account administrator in the organization's management account or as a delegated administrator in a member account. Valid values: SELF (default), DELEGATED_ADMIN"
+  type        = string
+}
+
 variable "aqua_tenant_id" {
   description = "Aqua Tenant ID"
   type        = string
