@@ -38,6 +38,7 @@ resource "aws_iam_role" "cspm_lambda_execution_role" {
 
 # Create generate Volume Scan external id lambda function
 resource "aws_lambda_function" "generate_volscan_external_id_function" {
+  count            = var.create_vol_scan_resource ? 1 : 0
   architectures    = ["x86_64"]
   description      = "Generate Volume Scanning External ID"
   function_name    = "aqua-autoconnect-generate-volscan-external-id-function-${var.random_id}"
@@ -54,7 +55,8 @@ resource "aws_lambda_function" "generate_volscan_external_id_function" {
 
 # Invoking generate Volume Scan external id lambda function
 resource "aws_lambda_invocation" "generate_volscan_external_id_function" {
-  function_name = aws_lambda_function.generate_volscan_external_id_function.function_name
+  count         = var.create_vol_scan_resource ? 1 : 0
+  function_name = aws_lambda_function.generate_volscan_external_id_function[0].function_name
   input = jsonencode({
     ApiUrl            = var.aqua_cspm_url
     AutoConnectApiUrl = var.aqua_autoconnect_url
@@ -94,12 +96,12 @@ resource "aws_lambda_invocation" "generate_cspm_external_id_function" {
   triggers = {
     always_run = timestamp()
   }
-  depends_on = [aws_lambda_invocation.generate_volscan_external_id_function]
 }
 
 # Create Agentless role
 # trivy:ignore:AVD-AWS-0057
 resource "aws_iam_role" "agentless_role" {
+  count = var.create_vol_scan_resource ? 1 : 0
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
@@ -187,7 +189,7 @@ resource "aws_iam_role" "agentless_role" {
     })
   }
   name       = var.custom_agentless_role_name == "" ? "aqua-agentless-role-${var.random_id}" : var.custom_agentless_role_name
-  depends_on = [aws_lambda_invocation.generate_volscan_external_id_function]
+  depends_on = [aws_lambda_invocation.generate_volscan_external_id_function[0]]
 }
 
 # Create CSPM role
@@ -275,10 +277,9 @@ resource "aws_iam_role" "cspm_role" {
             "ecr:GetDownloadUrlForLayer",
             "ecr:BatchGetImage",
             "ecr:BatchCheckLayerAvailability",
-            "ecr:PutImage",
-            "ecr:InitiateLayerUpload",
-            "ecr:UploadLayerPart",
-            "ecr:CompleteLayerUpload",
+            "ecr:ListImages",
+            "ecr:DescribeImages",
+            "ecr:GetRepositoryPolicy",
             "ecr:DescribeRepositories",
             "ecr:GetAuthorizationToken",
             "lambda:ListAliases",
@@ -329,6 +330,7 @@ resource "aws_iam_role" "cspm_role" {
             "devops-guru:ListNotificationChannels",
             "ec2:GetEbsEncryptionByDefault",
             "ec2:GetEbsDefaultKmsKeyId",
+            "ec2:DescribeVpcEndpointServicePermissions",
             "organizations:ListAccounts",
             "kendra:ListIndices",
             "proton:ListEnvironmentTemplates",
@@ -440,39 +442,4 @@ resource "time_sleep" "sleep" {
     cspm_assume_role_policy = aws_iam_role.cspm_role.assume_role_policy
   }
   depends_on = [aws_iam_role.cspm_role]
-}
-
-# Create CSPM key lambda function
-resource "aws_lambda_function" "create_cspm_key_function" {
-  architectures    = ["x86_64"]
-  description      = "Trigger CSPM via CSPM Api"
-  function_name    = "aqua-autoconnect-create-cspm-key-function-${var.random_id}"
-  handler          = "create_cspm_key.handler"
-  role             = aws_iam_role.cspm_lambda_execution_role.arn
-  runtime          = "python3.12"
-  timeout          = 120
-  filename         = data.archive_file.create_cspm_key_function.output_path
-  source_code_hash = data.archive_file.create_cspm_key_function.output_base64sha256
-  tracing_config {
-    mode = "Active"
-  }
-}
-
-# Invoking CSPM key lambda function
-resource "aws_lambda_invocation" "create_cspm_key_function" {
-  function_name = aws_lambda_function.create_cspm_key_function.function_name
-  input = jsonencode({
-    ApiUrl        = var.aqua_cspm_url
-    AquaApiKey    = var.aqua_api_key
-    AquaSecretKey = var.aqua_api_secret
-    RoleArn       = aws_iam_role.cspm_role.arn
-    ExternalId    = local.cspm_external_id
-    AccountId     = tostring(var.aws_account_id)
-    GroupId       = var.aqua_cspm_group_id
-    CustomCSPMRegions = var.custom_cspm_regions
-  })
-  triggers = {
-    always_run = timestamp()
-  }
-  depends_on = [time_sleep.sleep]
 }

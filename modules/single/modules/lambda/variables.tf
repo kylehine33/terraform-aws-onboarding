@@ -32,11 +32,6 @@ variable "aqua_cspm_url" {
   type        = string
 }
 
-variable "aqua_cspm_group_id" {
-  description = "Aqua CSPM Group ID"
-  type        = number
-}
-
 variable "aqua_cspm_aws_account_id" {
   description = "Aqua CSPM AWS Account ID"
   type        = string
@@ -67,12 +62,8 @@ variable "custom_agentless_role_name" {
   type        = string
 }
 
-variable "aws_account_id" {
-  description = "AWS Account ID"
-  type        = number
-}
-
-variable "custom_cspm_regions" {
-  description = "Custom CSPM regions"
-  type        = string
+variable "create_vol_scan_resource" {
+  description = "Create Volume Scanning Resource"
+  type        = bool
+  default     = true
 }

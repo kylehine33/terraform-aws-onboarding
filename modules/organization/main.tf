@@ -15,7 +15,7 @@ resource "aws_cloudformation_stack_set" "stack_set" {
 
   operation_preferences {
     failure_tolerance_percentage = 100
-    region_concurrency_type     = "PARALLEL"
+    region_concurrency_type      = "PARALLEL"
     max_concurrent_percentage    = 100
   }
 
@@ -43,6 +43,7 @@ resource "aws_cloudformation_stack_set" "stack_set" {
     CustomInternetGatewayName      = var.custom_internet_gateway_name
     CustomSecurityGroupName        = var.custom_security_group_name
     CustomCSPMRegions              = var.custom_cspm_regions
+    VolumeScanningDeployment       = var.volume_scanning_deployment
   }
 }
 
